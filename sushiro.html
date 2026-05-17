@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>壽司郎計算機</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: #fdf8f4;
+    font-family: -apple-system, 'Hiragino Sans', sans-serif;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    padding: 28px 16px 60px;
+  }
+  .header { text-align: center; margin-bottom: 24px; }
+  .header h1 { font-size: 21px; font-weight: 900; color: #c0392b; margin: 6px 0 2px; letter-spacing: 0.04em; }
+  .header p { color: #bbb; font-size: 12px; }
+
+  .total-box {
+    width: 100%; max-width: 370px;
+    background: #fff;
+    border: 2.5px solid #f0a0a0;
+    border-radius: 22px;
+    padding: 18px 40px;
+    margin-bottom: 28px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(192,57,43,0.07);
+  }
+  .total-label { color: #ccc; font-size: 11px; letter-spacing: 0.12em; margin-bottom: 2px; }
+  .total-amount { font-size: 52px; font-weight: 900; color: #c0392b; line-height: 1; }
+  .total-count { color: #ccc; font-size: 12px; margin-top: 5px; }
+
+  .grid {
+    width: 100%; max-width: 370px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .grid-item {
+    width: calc(25% - 8px);
+  }
+
+  .plate-btn {
+    width: 100%;
+    border-radius: 16px;
+    padding: 12px 6px 10px;
+    cursor: pointer;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    border-width: 2px;
+    border-style: solid;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .plate-btn:active { opacity: 0.65; }
+  .plate-price { font-size: 15px; font-weight: 800; line-height: 1; }
+  .plate-name { font-size: 10px; color: #aaa; line-height: 1; }
+
+  .badge {
+    position: absolute; top: 6px; right: 7px;
+    color: #fff;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 1px 6px;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  .custom-box {
+    width: 100%;
+    background: #f6f6f6;
+    border: 2px solid #ddd;
+    border-radius: 16px;
+    padding: 12px 6px 10px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 5px;
+  }
+  .custom-box input {
+    width: 80%;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #555;
+    outline: none;
+    padding: 4px 0;
+    font-family: inherit;
+  }
+  .custom-box button {
+    background: #555; color: #fff; border: none;
+    border-radius: 8px; padding: 4px 12px;
+    font-size: 12px; cursor: pointer; font-weight: 700;
+    font-family: inherit;
+  }
+
+  .detail-box {
+    width: 100%; max-width: 370px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1.5px solid #eee;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .detail-label { color: #bbb; font-size: 11px; margin-bottom: 8px; letter-spacing: 0.1em; }
+  .chips {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip {
+    border-radius: 99px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 800;
+    border-width: 1.5px;
+    border-style: solid;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip:active { opacity: 0.4; }
+
+  .reset-btn {
+    background: none;
+    border: 2px solid #e0e0e0;
+    border-radius: 99px;
+    padding: 8px 28px;
+    color: #bbb;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:38px;line-height:1">🍣</div>
+  <h1>壽司郎計算機</h1>
+  <p>點了哪個盤、按哪個盤</p>
+</div>
+
+<div class="total-box">
+  <div class="total-label">合計金額</div>
+  <div class="total-amount" id="total">NT$0</div>
+  <div class="total-count" id="count">0 盤</div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div id="detail-box" class="detail-box" style="display:none">
+  <div class="detail-label">已點明細 <span style="color:#ddd;font-size:10px">（點擊刪除）</span></div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<button class="reset-btn" id="reset-btn" style="display:none" onclick="resetAll()">🔄 重置</button>
+
+<script>
+var PLATES = [
+  { price: 30, name: "奶茶盤", plate: "#c8b49a", center: "#b8a08a", rim: "#8a6a4a", bg: "#faf5ef", border: "#d4bfa8" },
+  { price: 40, name: "紅色盤", plate: "#7a2030", center: "#5a1520", rim: "#4a1018", bg: "#fdf0f2", border: "#c07080" },
+  { price: 50, name: "綠色盤", plate: "#4a6640", center: "#3a5030", rim: "#2e4025", bg: "#f0f5ee", border: "#7a9a70" },
+  { price: 60, name: "銀色盤", plate: "#b0b8c0", center: "#909aa4", rim: "#606870", bg: "#f4f6f8", border: "#a0aab4" },
+  { price: 70, name: "藍色盤", plate: "#7090b8", center: "#5070a0", rim: "#405888", bg: "#eff4fb", border: "#8aaad0" },
+  { price: 80, name: "金色盤", plate: "#c8aa70", center: "#b09050", rim: "#987838", bg: "#faf6ec", border: "#d4bc80" },
+  { price: 100, name: "黑色盤", plate: "#303030", center: "#181818", rim: "#282828", bg: "#f0f0f0", border: "#707070" }
+];
+
+var items = [];
+try { items = JSON.parse(localStorage.getItem('sushiro') || '[]'); } catch(e) { items = []; }
+
+function save() {
+  try { localStorage.setItem('sushiro', JSON.stringify(items)); } catch(e) {}
+}
+
+function plateSVG(p) {
+  return '<svg width="52" height="52" viewBox="0 0 56 56">'
+    + '<circle cx="28" cy="28" r="27" fill="' + p.rim + '"/>'
+    + '<circle cx="28" cy="28" r="23" fill="' + p.plate + '"/>'
+    + '<circle cx="28" cy="28" r="17" fill="' + p.center + '" opacity="0.7"/>'
+    + '<circle cx="28" cy="28" r="5" fill="' + p.center + '"/>'
+    + '<circle cx="28" cy="28" r="3" fill="' + p.rim + '" opacity="0.5"/>'
+    + '<ellipse cx="20" cy="18" rx="6" ry="3.5" fill="white" opacity="0.13" transform="rotate(-20 20 18)"/>'
+    + '</svg>';
+}
+
+function countOf(price) {
+  var n = 0;
+  for (var i = 0; i < items.length; i++) { if (items[i].price === price) n++; }
+  return n;
+}
+
+function addItem(price) {
+  var id = Date.now() + '_' + Math.floor(Math.random() * 100000);
+  items.push({ price: price, id: id });
+  save(); render();
+}
+
+function removeById(id) {
+  var next = [];
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id !== id) next.push(items[i]);
+  }
+  items = next;
+  save(); render();
+}
+
+function resetAll() {
+  if (confirm('確定要重置嗎？')) { items = []; save(); render(); }
+}
+
+function render() {
+  var total = 0;
+  for (var i = 0; i < items.length; i++) total += items[i].price;
+  document.getElementById('total').textContent = 'NT$' + total.toLocaleString();
+  document.getElementById('count').textContent = items.length + ' 盤';
+
+  // grid
+  var gridEl = document.getElementById('grid');
+  var html = '';
+
+  for (var j = 0; j < PLATES.length; j++) {
+    var p = PLATES[j];
+    var count = countOf(p.price);
+    var badge = count > 0
+      ? '<span class="badge" style="background:' + p.rim + '">' + count + '</span>'
+      : '';
+    html += '<div class="grid-item">'
+      + '<button class="plate-btn" '
+      + 'style="background:' + p.bg + ';border-color:' + p.border + '" '
+      + 'onclick="addItem(' + p.price + ')">'
+      + badge
+      + plateSVG(p)
+      + '<div class="plate-price" style="color:' + p.rim + '">NT$' + p.price + '</div>'
+      + '<div class="plate-name">' + p.name + '</div>'
+      + '</button></div>';
+  }
+
+  html += '<div class="grid-item">'
+    + '<div class="custom-box">'
+    + '<div style="font-size:26px;line-height:1">✏️</div>'
+    + '<div style="font-size:10px;color:#bbb;font-weight:700">其他金額</div>'
+    + '<input type="number" id="ci" placeholder="輸入" onkeydown="if(event.key===\'Enter\')addCustom()">'
+    + '<button onclick="addCustom()">追加</button>'
+    + '</div></div>';
+
+  gridEl.innerHTML = html;
+
+  // chips
+  var detailBox = document.getElementById('detail-box');
+  var chipsEl = document.getElementById('chips');
+  if (items.length > 0) {
+    detailBox.style.display = '';
+    var chtml = '';
+    for (var k = 0; k < items.length; k++) {
+      var item = items[k];
+      var pl = null;
+      for (var m = 0; m < PLATES.length; m++) { if (PLATES[m].price === item.price) { pl = PLATES[m]; break; } }
+      var cbg = pl ? pl.bg : '#f0f0f0';
+      var cbc = pl ? pl.border : '#ccc';
+      var ctc = pl ? pl.rim : '#555';
+      chtml += '<span class="chip" '
+        + 'style="background:' + cbg + ';border-color:' + cbc + ';color:' + ctc + '" '
+        + 'onclick="removeById(\'' + item.id + '\')">NT$' + item.price + ' ×</span>';
+    }
+    chipsEl.innerHTML = chtml;
+  } else {
+    detailBox.style.display = 'none';
+    chipsEl.innerHTML = '';
+  }
+
+  document.getElementById('reset-btn').style.display = items.length > 0 ? '' : 'none';
+}
+
+function addCustom() {
+  var input = document.getElementById('ci');
+  var val = parseInt(input.value);
+  if (!isNaN(val) && val > 0) { addItem(val); input.value = ''; }
+}
+
+render();
+</script>
+</body>
+</html>
